@@ -98,20 +98,24 @@ const cardPayment = document.getElementById('credit-card');
 
 //Submit validation and error handling
 const form=document.getElementById("registration");
-form.addEventListener('submit', (e) => {
-    event.preventDefault();
-    const requiredFields = document.querySelectorAll("[testName]");
-        for(let i=0; i<2; i++){
-            const field=requiredFields[i];
-            const testName=field.getAttribute('testName');
-            notValidError(validators[testName](field.value), field);
 
-            field.addEventListener('keyup', createErrorListener());
+form.addEventListener('submit', (e) => {
+    
+    const requiredFields = document.querySelectorAll("[testName]");
+        for(let i=0; i<requiredFields.length; i++){
+            const field=requiredFields[i];
+            const testName=field.getAttribute('testName'); 
+            if(testName!='selected'){   
+                const valid=validators[testName](field.value);
+                if(!valid){
+                    event.preventDefault();
+                }
+                notValidError(valid, field);
+                hintDisplay(valid, field.nextElementSibling, testName);
+                field.addEventListener('keyup', createErrorListener());
+                field.addEventListener('keyup', createHintListener(hintDisplay));
+            }
             
-            // (e) =>{
-            //     notValidError(show, field);
-            //     notValidError(show, fieldLabel);
-            //     createHintListener();
         }
 });
 
@@ -129,6 +133,9 @@ const validators = {
     },
     email: function (email){
         return /^[^@]+@+[^@.]+.com$/i.test(email);
+    },
+    emailHint: function (email){
+
     },
     userName: function (text){
         if (text)
@@ -150,8 +157,8 @@ function createHintListener(display) {
         const fieldName=field.getAttribute('testName');
         const fieldValue=event.target.value;
         const element = field.nextElementSibling;
-        const show = validators[fieldName](fieldValue);
-        display(show, element);
+        const valid = validators[fieldName](fieldValue);
+        display(valid, element, fieldName, fieldValue);
     }
   };
 
@@ -160,17 +167,24 @@ function createErrorListener(){
         const field = event.target
         const fieldName=field.getAttribute('testName');
         const fieldValue=event.target.value;
-        const show = validators[fieldName](fieldValue);
-        notValidError(show, field);
+        const valid = validators[fieldName](fieldValue);
+        notValidError(valid, field, fieldName);
     }
 };
 
-function hintDisplay(show, element) {
-    // show element when show is true, hide when false
-    if (show) {
-      element.style.display = "none";
-    }else {
-      element.style.display = "block";
+function hintDisplay(valid, element, fieldName, fieldValue){
+    // show element when valid and hide when !valid
+    // if the element argument is the email field, hintDisplay dynamically
+    // changes the 'hint' to suit the issue with its value upon validation
+    if (valid){
+        element.style.display = "none";
+    }else{
+        element.style.display = "block";
+        if(fieldName=="email" && !fieldValue){
+            element.innerHTML="You must enter a valid email address"
+        }else if(fieldName=="email" && fieldValue){
+            element.innerHTML="Email address must be formatted correctly"
+        }
     }
 }
 

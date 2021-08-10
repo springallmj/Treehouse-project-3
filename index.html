@@ -17,7 +17,7 @@
   </header>
 	<div class="container">
 
-    <form id="registration" action="index.html" method="post">
+    <form id="registration" action="index.html" method="post" novalidate>
       <p id="form-hint" class="form-hint"><span class="asterisk">*</span> - required field</p>
 
       <div class="basic-info-and-shirt-box">       
@@ -91,7 +91,7 @@
 
       <fieldset id="activities" class="activities">
         <legend>Register for Activities <span class="asterisk">*</span></legend>
-        <div id="activities-box" class="activities-box error-border" testName='activities'>
+        <div id="activities-box" class="activities-box error-border" testName='selected'>
           <label>
             <input  type="checkbox" name="all" data-cost="200">
             <span>Main Conference</span>
@@ -161,7 +161,7 @@
           <div class="expiration-box">
             <div class="month-box">
               <label for="exp-month">Expiration Date:</label>
-              <select id="exp-month" name="user-exp-month" class="error-border" testName='month'>
+              <select id="exp-month" name="user-exp-month" class="error-border" testName='selected'>
                 <option hidden>Select Date</option>
                 <option value="1">01 - January</option>
                 <option value="2">02 - February</option>
@@ -180,7 +180,7 @@
 
             <div class="year-box">
               <label for="exp-year">Expiration Year:</label>
-              <select id="exp-year" name="user-exp-year" class="error-border" testName='expiration'>
+              <select id="exp-year" name="user-exp-year" class="error-border" testName='selected'>
                 <option hidden>Select Year</option>
                 <option value="2021">2021</option>
                 <option value="2022">2022</option>
