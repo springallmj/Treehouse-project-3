@@ -96,27 +96,28 @@ const zipCode = document.getElementById('user-zip');
 const cvv = document.getElementById('user-cvv');
 const cardPayment = document.getElementById('credit-card');
 
-
+//Submit validation and error handling
 const form=document.getElementById("registration");
 form.addEventListener('submit', (e) => {
-    event.pereventDefault();
-    isValidEmail(userEmail);
+    event.preventDefault();
+    const requiredFields = document.querySelectorAll("[testName]");
+        for(let i=0; i<2; i++){
+            const field=requiredFields[i];
+            const testName=field.getAttribute('testName');
+            notValidError(validators[testName](field.value), field);
+
+            field.addEventListener('keyup', createErrorListener());
+            
+            // (e) =>{
+            //     notValidError(show, field);
+            //     notValidError(show, fieldLabel);
+            //     createHintListener();
+        }
 });
 
 
 //Field Validation functions
-function isValidName (text){
-    if (text)
-        return true;
-    else
-        return false;
-}
-
-function isValidEmail (email){
-    return /^[^@]+@+[^@.]+.com$/i.test(email);
-}
-
-const cardFieldsTest = {
+const validators = {
     cardNumber: function (number){
         return /^[\d]{13,16}$/.test(number);
     },
@@ -125,19 +126,60 @@ const cardFieldsTest = {
     },
     zipCode: function (zip){
         return /^[\d]{5}$/.test(zip);
+    },
+    email: function (email){
+        return /^[^@]+@+[^@.]+.com$/i.test(email);
+    },
+    userName: function (text){
+        if (text)
+            return true;
+        else
+            return false;
     }
 };
 
+//dynamic hint alerts for credit card details
 if(paymentSelect.value=='credit-card'){
-    cardPayment.addEventListener('keyup', (e) =>{
-        const field = event.target.getAttribute('testName');
+    cardPayment.addEventListener('keyup', createHintListener(hintDisplay));
+};
+
+
+function createHintListener(display) {
+    return (e) => {
+        const field = event.target
+        const fieldName=field.getAttribute('testName');
         const fieldValue=event.target.value;
-        console.log(cardFieldsTest[field](fieldValue));
-    });
-    
+        const element = field.nextElementSibling;
+        const show = validators[fieldName](fieldValue);
+        display(show, element);
+    }
+  };
+
+function createErrorListener(){
+    return (e) => {
+        const field = event.target
+        const fieldName=field.getAttribute('testName');
+        const fieldValue=event.target.value;
+        const show = validators[fieldName](fieldValue);
+        notValidError(show, field);
+    }
+};
+
+function hintDisplay(show, element) {
+    // show element when show is true, hide when false
+    if (show) {
+      element.style.display = "none";
+    }else {
+      element.style.display = "block";
+    }
 }
 
-//Validation
-// submitButton.addEventListener('click', (e) => {
-//     event.pereventDefault();
-// });
+function notValidError(show, element){
+    if (show){
+        element.className="valid";
+        element.parentElement.className="valid";
+      } else{
+        element.className="not-valid";
+        element.parentElement.className="not-valid";
+      }
+}
