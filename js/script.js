@@ -100,23 +100,43 @@ const cardPayment = document.getElementById('credit-card');
 const form=document.getElementById("registration");
 
 form.addEventListener('submit', (e) => {
-    
     const requiredFields = document.querySelectorAll("[testName]");
-        for(let i=0; i<requiredFields.length; i++){
-            const field=requiredFields[i];
-            const testName=field.getAttribute('testName'); 
-            if(testName!='selected'){   
-                const valid=validators[testName](field.value);
-                if(!valid){
-                    event.preventDefault();
-                }
-                notValidError(valid, field);
-                hintDisplay(valid, field.nextElementSibling, testName);
-                field.addEventListener('keyup', createErrorListener());
-                field.addEventListener('keyup', createHintListener(hintDisplay));
+    //loops all require fields and applies the appropriate validation and
+    //event listeners to dynamically update fields to 'valid' when complete
+    for(let i=0; i<requiredFields.length; i++){
+        const field=requiredFields[i];
+        const testName=field.getAttribute('testName'); 
+
+        if(testName!='select' && testName!='checkBox'){   
+            const valid=validators[testName](field.value);
+            if(!valid){
+                event.preventDefault();
             }
-            
+            notValidError(valid, field);
+            hintDisplay(valid, field.nextElementSibling, testName);
+            field.addEventListener('keyup', createErrorListener());
+            field.addEventListener('keyup', createHintListener(hintDisplay));
         }
+        //'Select' Field validation - credit card details cvv and exp. date.
+        //a seecltion must be made.
+        else if(testName=='select'){
+            const valid=validators[testName](field.value);
+            if(!valid){
+                event.preventDefault();
+                notValidError(valid, field);
+                field.addEventListener('change', createErrorListener());
+            }
+        }
+        //Checkbox options validated - at least one selection must be made
+        else if(testName=='checkBox'){
+            const valid=checkBoxes();
+            if(!valid){
+                event.preventDefault();
+                hintDisplay(valid, field.parentElement.lastElementChild);   
+                field.addEventListener('change', createHintListener(hintDisplay));
+            }
+        }
+    }
 });
 
 
@@ -142,6 +162,15 @@ const validators = {
             return true;
         else
             return false;
+    },
+    select: function(selection){
+        if (selection!='Select Date' && selection!='Select Year')
+            return true;
+        else
+            return false;
+    },
+    checkBox: function(){
+        return checkBoxes();
     }
 };
 
@@ -166,6 +195,7 @@ function createErrorListener(){
     return (e) => {
         const field = event.target
         const fieldName=field.getAttribute('testName');
+        
         const fieldValue=event.target.value;
         const valid = validators[fieldName](fieldValue);
         notValidError(valid, field, fieldName);
@@ -188,12 +218,33 @@ function hintDisplay(valid, element, fieldName, fieldValue){
     }
 }
 
+//notValidError sets className to "not-valid" where a required field fails validation
+//NOTE it is assumed that a cvv and exp date are required for cc details.
+//not-valid has been applied to these fields
 function notValidError(show, element){
-    if (show){
+    if(element.getAttribute('testName')=='select' ||
+       element.getAttribute('testName')=='checkBox'){
+        if(show){
+            element.className="valid"
+        }else{
+            element.className="not-valid"
+        }
+    }else{
+        if(show){
         element.className="valid";
         element.parentElement.className="valid";
       } else{
         element.className="not-valid";
         element.parentElement.className="not-valid";
       }
+    }
+}
+
+function checkBoxes(){
+    for(let i=0; i<courses.length; i++){
+        if(courses[i].checked){
+            return true;
+        }
+    return false;
+    }
 }

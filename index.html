@@ -91,7 +91,7 @@
 
       <fieldset id="activities" class="activities">
         <legend>Register for Activities <span class="asterisk">*</span></legend>
-        <div id="activities-box" class="activities-box error-border" testName='selected'>
+        <div id="activities-box" class="activities-box error-border" testName='checkBox'>
           <label>
             <input  type="checkbox" name="all" data-cost="200">
             <span>Main Conference</span>
@@ -161,7 +161,7 @@
           <div class="expiration-box">
             <div class="month-box">
               <label for="exp-month">Expiration Date:</label>
-              <select id="exp-month" name="user-exp-month" class="error-border" testName='selected'>
+              <select id="exp-month" name="user-exp-month" class="error-border" testName='select'>
                 <option hidden>Select Date</option>
                 <option value="1">01 - January</option>
                 <option value="2">02 - February</option>
@@ -176,11 +176,12 @@
                 <option value="11">11 - November</option>	
                 <option value="12">12 - December</option>          		          
               </select>
+              <span id="cc-hint" class="cc-hint hint">A valid card month must be selected</span>
             </div>
 
             <div class="year-box">
               <label for="exp-year">Expiration Year:</label>
-              <select id="exp-year" name="user-exp-year" class="error-border" testName='selected'>
+              <select id="exp-year" name="user-exp-year" class="error-border" testName='select'>
                 <option hidden>Select Year</option>
                 <option value="2021">2021</option>
                 <option value="2022">2022</option>
@@ -188,6 +189,7 @@
                 <option value="2024">2024</option>
                 <option value="2025">2025</option>    		          
               </select> 
+              <span id="cc-hint" class="cc-hint hint">Valid card year must be selected</span>
             </div>
           </div> 
 
