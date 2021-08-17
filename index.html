@@ -21,17 +21,17 @@
       <p id="form-hint" class="form-hint"><span class="asterisk">*</span> - required field</p>
 
       <div class="basic-info-and-shirt-box">       
-        <fieldset class="basic-info">         
+        <fieldset id="basic-info" class="basic-info">         
           <legend>Basic Info</legend>
           
           <label for="name">Name: <span class="asterisk">*</span>
-            <input type="text" id="name" name="user-name" class="error-border" testName='userName'>
+            <input type="text" id="name" name="user-name" class="error-border" testName='userName' required>
             <span id="name-hint" class="name-hint hint">Name field cannot be blank</span>
           </label>
           
           
           <label for="email">Email Address: <span class="asterisk">*</span>
-            <input type="email" id="email" name="user-email" class="error-border" testName='email'>
+            <input type="email" id="email" name="user-email" class="error-border" testName='email' required>
             <span id="email-hint" class="email-hint hint">Email address must be formatted correctly</span>
           </label>
           
@@ -145,7 +145,7 @@
         <p id="activities-hint" class="activities-hint hint">Choose at least one activity</p>        	
       </fieldset>
 
-      <fieldset class="payment-methods">
+      <fieldset class="payment-methods" id="payment-info">
         <legend>Payment Info</legend>
 
         <div class="payment-method-box">
