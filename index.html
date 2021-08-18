@@ -21,11 +21,11 @@
       <p id="form-hint" class="form-hint"><span class="asterisk">*</span> - required field</p>
 
       <div class="basic-info-and-shirt-box">       
-        <fieldset id="basic-info" class="basic-info">         
+        <fieldset id="basic-info" class="basic-info">       
           <legend>Basic Info</legend>
           
-          <label for="name">Name: <span class="asterisk">*</span>
-            <input type="text" id="name" name="user-name" class="error-border" testName='userName' required>
+          <label for="name"">Name: <span class="asterisk">*</span>
+            <input type="text" id="name" name="user-name" class="error-border" testName='name' required>
             <span id="name-hint" class="name-hint hint">Name field cannot be blank</span>
           </label>
           
@@ -89,9 +89,10 @@
         </fieldset>
       </div>               
 
-      <fieldset id="activities" class="activities">
+      <fieldset id="activities" class="activities" testName='checkBox' required>
         <legend>Register for Activities <span class="asterisk">*</span></legend>
-        <div id="activities-box" class="activities-box error-border" testName='checkBox'>
+        <p id="activities-hint" class="activities-hint hint">Choose at least one activity</p>    
+        <div id="activities-box" class="activities-box error-border">
           <label>
             <input  type="checkbox" name="all" data-cost="200">
             <span>Main Conference</span>
@@ -142,14 +143,14 @@
           </label>
         </div>
         <p id="activities-cost" class="activities-cost">Total: $0</p>
-        <p id="activities-hint" class="activities-hint hint">Choose at least one activity</p>        	
+            	
       </fieldset>
 
       <fieldset class="payment-methods" id="payment-info">
         <legend>Payment Info</legend>
 
         <div class="payment-method-box">
-          <label for="payment">I'm going to pay with:</label>
+          <label for="payment" class=>I'm going to pay with:</label>
           <select id="payment" name="user-payment">
             <option selected value="credit-card">Credit Card</option>
             <option value="paypal">PayPal</option>
@@ -161,7 +162,7 @@
           <div class="expiration-box">
             <div class="month-box">
               <label for="exp-month">Expiration Date:</label>
-              <select id="exp-month" name="user-exp-month" class="error-border" testName='select'>
+              <select id="exp-month" name="user-exp-month" testName='select' required>
                 <option hidden>Select Date</option>
                 <option value="1">01 - January</option>
                 <option value="2">02 - February</option>
@@ -181,7 +182,7 @@
 
             <div class="year-box">
               <label for="exp-year">Expiration Year:</label>
-              <select id="exp-year" name="user-exp-year" class="error-border" testName='select'>
+              <select id="exp-year" name="user-exp-year" testName='select' required>
                 <option hidden>Select Year</option>
                 <option value="2021">2021</option>
                 <option value="2022">2022</option>
@@ -193,24 +194,24 @@
             </div>
           </div> 
 
-          <div class="credit-card-box">
+          <div class="credit-card-box"> 
             <div class="num-box">
               <label for="cc-num">Card Number: <span class="asterisk">*</span>
-                <input id="cc-num" name="user-cc-num" type="text" class="error-border" testName='cardNumber'>
+                <input id="cc-num" name="user-cc-num" type="text" class="error-border" testName='cardNumber' required>
                 <span id="cc-hint" class="cc-hint hint">Credit card number must be between 13 - 16 digits</span>
               </label>
             </div>
 
             <div class="zip-box">
               <label for="zip">Zip Code: <span class="asterisk">*</span>
-                <input id="zip" name="user-zip" type="text" class="error-border" testName='zipCode'>
+                <input id="zip" name="user-zip" type="text" class="error-border" testName='zipCode' required>
                 <span id="zip-hint" class="zip-hint hint">Zip Code must be 5 digits</span>
               </label>
             </div>
 
             <div class="cvv-box">
               <label for="cvv">CVV: <span class="asterisk">*</span>
-                <input id="cvv" name="user-cvv" type="text" class="error-border" testName='cvv'>
+                <input id="cvv" name="user-cvv" type="text" class="error-border" testName='cvv' required>
                 <span id="cvv-hint" class="cvv-hint hint">CVV must be 3 digits</span>
               </label>
             </div>

@@ -96,94 +96,109 @@ const zipCode = document.getElementById('user-zip');
 const cvv = document.getElementById('user-cvv');
 const cardPayment = document.getElementById('credit-card');
 
-const basicInfo=document.getElementById('basic-info');
-const activities=document.getElementById('activities');
-const paymentInfo=document.getElementById('payment-info');
+// const basicInfo=document.getElementById('basic-info');
+// const activities=document.getElementById('activities');
+// const paymentInfo=document.getElementById('payment-info');
 
 //Submit validation and error handling
 const form=document.getElementById("registration");
-
 form.addEventListener('submit', (e) => {
-    //const requiredFields = document.querySelectorAll("[testName]");
-    const requiredSections=[basicInfo, activities, paymentInfo];    
-
-    event.preventDefault();
-    // function notValid (){
-
-    // }
-
-    // function textValidator(){
-
-    // }
-    function createTextListener(validator, element){
-        return e => {
-          const text = e.target.value;
-          notValidError(validator(text), element);
+    const requiredFields=document.querySelectorAll("[required]");
+    for(let i=0; i<requiredFields.length; i++){
+        const field=requiredFields[i];
+        const testName=field.getAttribute('testName');
+        const validator=validators[testName];
+        const valid=validator(field.value);
+        //validation and event listeners for text fields
+        if(testName!="checkBox" && testName!="select"){
+            if(!valid){
+                event.preventDefault();
+                notValidError(valid, field.parentElement);
+                error(valid, field)
+                field.addEventListener("keyup", createTextListener(notValidError, validator, field.parentElement));
+                field.addEventListener("keyup", createTextListener(error, validator, field)); 
+            }
+            else{
+                notValidError(valid, field.parentElement);
+            }
+        //validation for checkbox (exp date, exp month only)
+        }else if(testName=="select"){
+            if(!valid){
+                event.preventDefault();
+                error(valid, field)
+                field.addEventListener("change", createTextListener(error, validator, field)); 
+            }
+            else{
+                notValidError(valid, field.previousElementChild);
+            }
+        //validation for checkbox
+        }else{
+            const checkBoxFieldSet=document.getElementById('activities')
+            if(!valid){
+                event.preventDefault();
+                checkBoxFieldSet.className="activities not-valid"
+                checkBoxFieldSet.firstElementChild.nextElementSibling.style.display = "block";
+                checkBoxFieldSet.addEventListener('click', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
+                
+                // (e) =>{
+                //     if(mainCheckbox.checked)
+                //     {
+                //         checkBoxFieldset.className="activities"
+                //         checkBoxFieldset.firstElementChild.nextElementSibling.style.display = "none";
+                //     }
+                // });
+            }
         }
     }
-
-    //use required fields to cycle through multiple validators
-    for(let i=0; i<1; i++){
-
-        const fieldSet=requiredSections[i];
-        const requiredFields=fieldSet.querySelectorAll("[required]");
-
-        for(let j=0; j<1; j++){
-            const field=requiredFields[j];
-            const fieldId=field.id;
-            const validator=validators[fieldId];
-            const show=validator(field.value);
-            notValidError(show, fieldSet.firstElementChild);
-            field.addEventListener("keyup", createTextListener(validator, fieldSet.firstElementChild));
-        }
-        
-
-        
-        
+    //focuses page on submit to first invlaid field
+    const invalidField=document.querySelectorAll(".not-valid");
+    const errorField=document.querySelectorAll(".error");
+    if(invalidField){
+        invalidField[0].focus();
+    }else{
+        errorField[0].focus();
     }
-
-
-    // for(let i=0; i<requiredFields.length; i++){
-    //     const field=requiredFields[i];
-    //     const testName=field.getAttribute('testName'); 
-
-    //     if(testName!='select' && testName!='checkBox'){   
-    //         const valid=validators[testName](field.value);
-    //         if(!valid){
-    //             event.preventDefault();
-    //         }
-    //         notValidError(valid, field);
-    //         hintDisplay(valid, field.nextElementSibling, testName);
-    //         field.addEventListener('keyup', createErrorListener());
-    //         field.addEventListener('keyup', createHintListener(hintDisplay));
-    //     }
-    //     //'Select' Field validation - credit card details cvv and exp. date.
-    //     //a seecltion must be made.
-    //     else if(testName=='select'){
-    //         const valid=validators[testName](field.value);
-    //         if(!valid){
-    //             event.preventDefault();
-    //             notValidError(valid, field);
-    //             field.parentElement.addEventListener('change', createErrorListener());
-    //         }
-    //     }
-    //     //Checkbox options validated - at least one selection must be made
-    //     else if(testName=='checkBox'){
-    //         const valid=checkBoxes();
-    //         if(!valid){
-    //             event.preventDefault();
-    //             hintDisplay(valid, field.parentElement.lastElementChild);   
-    //             field.addEventListener('change', (e) =>{
-    //                 const field = event.target
-    //                 const element = document.getElementById("activities-hint");
-    //                 const valid = validators.checkBox();
-    //                 hintDisplay(valid, element);
-    //             });
-    //         }
-    //     }
-    // }
 });
 
+
+function createTextListener(testFunc, validator, element){
+    return e => {
+      const text = e.target.value;
+      testFunc(validator(text), element);
+    }
+}
+
+function createChangeListener(testFunc, validator, element){
+    return e => {
+        testFunc(validator, element);
+    }
+}
+
+function notValidError(valid, element){
+    if(valid){
+        element.className="valid";
+    }else{
+        element.className="not-valid";
+    }
+}
+
+function error(valid, element){
+    if(valid){
+        element.className="";
+    }else{
+        element.className="error";
+    }
+}
+
+function errorCheckbox(valid, element){
+    if(valid){
+        element.className="activities";
+        element.firstElementChild.nextElementSibling.style.display = "none";
+    }else{
+        element.className="activities not-valid";
+        element.firstElementChild.nextElementSibling.style.display = "block";
+    }
+}
 
 
 //Field Validation functions
@@ -198,11 +213,12 @@ const validators = {
         return /^[\d]{5}$/.test(zip);
     },
     email: function (email){
-        return /^[^@]+@+[^@.]+.com$/i.test(email);
+        return /^[^@ ]+@+[^@. ]+.com$/i.test(email);
     },
     emailHint: function (email){
 
     },
+    //this requires additional validation - no leading or trailing spaces - or perhaps reformat it.
     name: function (text){
         if (text)
             return true;
@@ -216,7 +232,13 @@ const validators = {
             return false;
     },
     checkBox: function(){
-        return checkBoxes();
+        const mainCheckBox=document.querySelector('[name="all"]')
+        if(!mainCheckBox.checked){
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 };
 
@@ -262,44 +284,4 @@ function hintDisplay(valid, element, fieldName, fieldValue){
             element.innerHTML="Email address must be formatted correctly"
         }
     }
-}
-
-//notValidError sets className to "not-valid" where a required field fails validation
-//NOTE it is assumed that a cvv and exp date are required for cc details.
-//not-valid has been applied to these fields
-function notValidError(show, element){
-    if(show){
-        element.className="valid";
-    }else{
-        element.className="not-valid";
-    }
-}
-
-
-
-
-    // if(element.getAttribute('testName')=='select' ||
-    //    element.getAttribute('testName')=='checkBox'){
-    //     if(show){
-    //         element.className="valid"
-    //     }else{
-    //         element.className="not-valid"
-    //     }
-    // }else{
-    //     if(show){
-    //     element.className="valid";
-    //     element.parentElement.className="valid";
-    //   } else{
-    //     element.className="not-valid";
-    //     element.parentElement.className="not-valid";
-    //   }
-    // }}
-
-function checkBoxes(){
-    for(let i=0; i<courses.length; i++){
-        if(courses[i].checked){
-            return true;
-        }
-    }
-    return false;
 }
