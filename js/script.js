@@ -106,37 +106,74 @@ for(let i=0; i<activities.length; i++){
     activities[i].addEventListener('focus', (e) =>{
         event.target.parentElement.className="focus";
     });
-
     activities[i].addEventListener('blur', (e) =>{
         event.target.parentElement.className="";
     });
-    activities[i].addEventListener('change', (e)=>{
 
+    activities[i].addEventListener('change', (e)=>{
+        if(event.target==activities[0]){
+            if(event.target.checked){
+                for(let j=1; j<activities.length; j++){
+                    activities[j].parentElement.className="";
+                    activities[j].removeAttribute('disabled');
+                }
+            }else{
+                for(let j=1; j<activities.length; j++){
+                    activities[j].parentElement.className="disabled";
+                    activities[j].setAttribute('disabled', "");
+                }
+            }
+        }else{
+
+            const selectedTime=extractTime(event.target);
+            if(event.target.checked){
+                for(let j=1; j<activities.length; j++){
+                    const testTime=extractTime(activities[j]);
+                    if(event.target==activities[j]){
+                        // un hide all activites
+                    }else{ 
+                        if(selectedTime[0]==testTime[0] && ((selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]) || (selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]))){
+                            activities[j].parentElement.className="disabled";//add disabled class to parent
+                            activities[j].setAttribute('disabled', "");//ad attribute disabled
+                        }
+                    }
+                }
+            }else if(!event.target.checked){
+                for(let j=1; j<activities.length; j++){
+                    const testTime=extractTime(activities[j]);
+                    if(event.target==activities[j]){
+                        // un hide all activites
+                    }else{ 
+                        
+                        if(selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2] || selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
+                            activities[j].parentElement.className="";
+                            activities[j].removeAttribute('disabled');
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
 //Converts data-day-and-time attribute to an Array of "day", "start time" and "end time" in 24 hour time.s
-function updateAvailability(){
-    const schedule=[];
-    for (let i=1; i<activities.length; i++){
-        let time=activities[i].getAttribute('data-day-and-time');
-        time=time.replace("-", " ");
-        time=time.replaceAll("am", "");
-        //time=time.replaceAll("pm", "");
-        time=time.split(" ");
-        for(let j=0; j<time.length; j++){
-            if(time[j].includes("pm")){
-                time[j]=parseInt(time[j].replace("pm", ""))
-                if(time[j]==12){
-                    time[j]=time[j].toString();
-                }else{
-                    time[j]=(time[j]+12).toString(); 
-                }
+function extractTime(activity){
+    let time=activity.getAttribute('data-day-and-time');
+
+    time=time.replace("-", " ");
+    time=time.split(" ");
+    for(let j=0; j<time.length; j++){
+        if(time[j].includes("pm")){
+            time[j]=parseInt(time[j].replace("pm", ""));
+            if(time[j]!=12){
+                time[j]=time[j]+12; 
             }
+        }else if(time[j].includes("am")){
+            time[j]=parseInt(time[j].replace("am", ""));
         }
-        schedule.push(time);
+
     }
-    console.log(schedule);
+    return time;
 }
 
 
