@@ -87,6 +87,66 @@ paymentSelect.addEventListener('change', (e) => {
 });
 
 
+const activities=document.querySelectorAll('[type="checkbox"]');
+//Program acticvities listneners to include;
+//change applies and removes focus styling with change of element focus
+//add's enter key listener to use the enter key to 'check' focused checkbox
+for(let i=0; i<activities.length; i++){
+    activities[i].addEventListener('keypress', (e)=>{
+        if(e.key=='Enter')
+        {
+            event.preventDefault();
+            if(event.target.checked==true){
+                event.target.checked=false
+            }else{
+                event.target.checked=true
+            }
+        }
+    });
+    activities[i].addEventListener('focus', (e) =>{
+        event.target.parentElement.className="focus";
+    });
+
+    activities[i].addEventListener('blur', (e) =>{
+        event.target.parentElement.className="";
+    });
+    activities[i].addEventListener('change', (e)=>{
+
+    });
+}
+
+//Converts data-day-and-time attribute to an Array of "day", "start time" and "end time" in 24 hour time.s
+function updateAvailability(){
+    const schedule=[];
+    for (let i=1; i<activities.length; i++){
+        let time=activities[i].getAttribute('data-day-and-time');
+        time=time.replace("-", " ");
+        time=time.replaceAll("am", "");
+        //time=time.replaceAll("pm", "");
+        time=time.split(" ");
+        for(let j=0; j<time.length; j++){
+            if(time[j].includes("pm")){
+                time[j]=parseInt(time[j].replace("pm", ""))
+                if(time[j]==12){
+                    time[j]=time[j].toString();
+                }else{
+                    time[j]=(time[j]+12).toString(); 
+                }
+            }
+        }
+        schedule.push(time);
+    }
+    console.log(schedule);
+}
+
+
+//filteres activities by time removing conflicts dynamically
+// for(let i=0; i<activities.length; i++){
+//     activities[i].addEventListener("change", )
+// }
+
+
+
 
 //Form Validation
 const submitButton = document.querySelector("[type='submit']");
@@ -129,7 +189,7 @@ form.addEventListener('submit', (e) => {
                 field.addEventListener("change", createTextListener(error, validator, field)); 
             }
             else{
-                notValidError(valid, field.previousElementChild);
+                notValidError(valid, field);
             }
         //validation for checkbox
         }else{
@@ -137,26 +197,21 @@ form.addEventListener('submit', (e) => {
             if(!valid){
                 event.preventDefault();
                 checkBoxFieldSet.className="activities not-valid"
-                checkBoxFieldSet.firstElementChild.nextElementSibling.style.display = "block";
-                checkBoxFieldSet.addEventListener('click', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
-                
-                // (e) =>{
-                //     if(mainCheckbox.checked)
-                //     {
-                //         checkBoxFieldset.className="activities"
-                //         checkBoxFieldset.firstElementChild.nextElementSibling.style.display = "none";
-                //     }
-                // });
+                checkBoxFieldSet.lastElementChild.style.display = "block";
             }
+            checkBoxFieldSet.addEventListener('change', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
+            checkBoxFieldSet.addEventListener('keypress', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
         }
     }
+
     //focuses page on submit to first invlaid field
-    const invalidField=document.querySelectorAll(".not-valid");
-    const errorField=document.querySelectorAll(".error");
-    if(invalidField){
-        invalidField[0].focus();
-    }else{
-        errorField[0].focus();
+    for (let i=0; i<requiredFields.length; i++){
+        const className=requiredFields[i].className;
+
+        if(/not-valid/.test(className) || /error$/.test(className)){
+                requiredFields[i].focus();
+                break;
+        }
     }
 });
 
@@ -170,7 +225,7 @@ function createTextListener(testFunc, validator, element){
 
 function createChangeListener(testFunc, validator, element){
     return e => {
-        testFunc(validator, element);
+        testFunc(validator(), element);
     }
 }
 
@@ -193,10 +248,10 @@ function error(valid, element){
 function errorCheckbox(valid, element){
     if(valid){
         element.className="activities";
-        element.firstElementChild.nextElementSibling.style.display = "none";
+        element.lastElementChild.style.display = "none";
     }else{
         element.className="activities not-valid";
-        element.firstElementChild.nextElementSibling.style.display = "block";
+        element.lastElementChild.style.display = "block";
     }
 }
 
@@ -232,8 +287,7 @@ const validators = {
             return false;
     },
     checkBox: function(){
-        const mainCheckBox=document.querySelector('[name="all"]')
-        if(!mainCheckBox.checked){
+        if(!document.querySelector('[name="all"]').checked){
             return false;
         }
         else{
