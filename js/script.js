@@ -52,7 +52,7 @@ const registerFieldSet = document.getElementById('activities');
 const courses=registerFieldSet.querySelectorAll("[type='checkbox']");
 registerFieldSet.addEventListener('change', () => {
     if(event.target.type='checkbox'){
-        updateCost();
+        document.getElementById('activities-cost').innerHTML=updateCost();
     }
 });
 
@@ -62,14 +62,17 @@ registerFieldSet.addEventListener('change', () => {
 //Function also dynamically creates the total cost HTML and inserts 
 //in to the DOM
 function updateCost(){
-    const p=document.getElementById('activities-cost');
-    totalCost=0;
-    for(let i=0; i<courses.length; i++){
-        if(courses[i].checked)
-        totalCost+=parseInt(courses[i].getAttribute('data-cost'))
+    if (!courses[0].checked){
+        return "Total: $0";
+    }else{
+        
+        totalCost=0;
+        for(let i=0; i<courses.length; i++){
+            if(courses[i].checked)
+            totalCost+=parseInt(courses[i].getAttribute('data-cost'))
+        }
+        return `Total: $${totalCost.toString() }`;
     }
-    const costHtml=`Total: $${totalCost.toString() }`;
-    p.innerHTML=costHtml;
 }
 
 //filtering payment method
@@ -111,47 +114,11 @@ for(let i=0; i<activities.length; i++){
     });
 
     activities[i].addEventListener('change', (e)=>{
-        if(event.target==activities[0]){
-            if(event.target.checked){
-                for(let j=1; j<activities.length; j++){
-                    activities[j].parentElement.className="";
-                    activities[j].removeAttribute('disabled');
-                }
-            }else{
-                for(let j=1; j<activities.length; j++){
-                    activities[j].parentElement.className="disabled";
-                    activities[j].setAttribute('disabled', "");
-                }
-            }
+        const check=event.target;
+        if(check==activities[0]){
+            disableAllActivities(check)
         }else{
-
-            const selectedTime=extractTime(event.target);
-            if(event.target.checked){
-                for(let j=1; j<activities.length; j++){
-                    const testTime=extractTime(activities[j]);
-                    if(event.target==activities[j]){
-                        // un hide all activites
-                    }else{ 
-                        if(selectedTime[0]==testTime[0] && ((selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]) || (selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]))){
-                            activities[j].parentElement.className="disabled";//add disabled class to parent
-                            activities[j].setAttribute('disabled', "");//ad attribute disabled
-                        }
-                    }
-                }
-            }else if(!event.target.checked){
-                for(let j=1; j<activities.length; j++){
-                    const testTime=extractTime(activities[j]);
-                    if(event.target==activities[j]){
-                        // un hide all activites
-                    }else{ 
-                        
-                        if(selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2] || selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
-                            activities[j].parentElement.className="";
-                            activities[j].removeAttribute('disabled');
-                        }
-                    }
-                }
-            }
+            filterActivities(check);
         }
     });
 }
@@ -177,10 +144,49 @@ function extractTime(activity){
 }
 
 
-//filteres activities by time removing conflicts dynamically
-// for(let i=0; i<activities.length; i++){
-//     activities[i].addEventListener("change", )
-// }
+//compares times and applies or removes disabled attribute depending on conflict
+function filterActivities(check){
+    const selectedTime=extractTime(check);
+    if(check.checked){
+        for(let j=1; j<activities.length; j++){
+            const testTime=extractTime(activities[j]);
+            if(check!=activities[j] && selectedTime[0]==testTime[0] && ((selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]) || (selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]))){
+                activities[j].parentElement.className="disabled";//add disabled class to parent
+                activities[j].setAttribute('disabled', "");//ad attribute disabled
+            }
+        }
+    }else if(!check.checked){
+        for(let j=1; j<activities.length; j++){
+            const testTime=extractTime(activities[j]);
+            if(check!=activities[j] && selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2] || selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
+                activities[j].parentElement.className="";
+                activities[j].removeAttribute('disabled');
+            }
+        }
+    }
+}
+
+function disableAllActivities(check){
+  
+    
+
+    for(let j=1; j<activities.length; j++){
+        if(!check.checked){
+            activities[j].parentElement.className="disabled";
+            activities[j].setAttribute('disabled', "");
+        }else{
+            activities[j].parentElement.className="";
+            activities[j].removeAttribute('disabled');
+        }
+    }
+    if(check.checked){
+        for(let i=1; i<activities.length; i++){
+            if(activities[i].checked){
+                filterActivities(activities[i]);
+            }
+        }
+    }
+}
 
 
 
