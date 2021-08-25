@@ -1,8 +1,8 @@
-//initialise focus on name field
+//focus userName field on page load
 const userName = document.getElementById('name');
 userName.focus();
 
-//Display 'other job' description ONLY if other job is selected as job roll
+//Display 'other job' description when 'other job' is selected as job roll
 const jobRoll=document.getElementById('title');
 jobRoll.addEventListener('change', () => {
     const otherJob = document.getElementById('other-job-role');
@@ -14,8 +14,8 @@ jobRoll.addEventListener('change', () => {
 });
 
 
-//Display shirt colour ONLE when a shirt style has been selected
-//Filters design color options by selected desigen theme
+//Display shirt colour ONLY when a shirt style has been selected
+//Filters design color options to display only those that apply to the selected desigen theme
 const shirtColorDiv=document.getElementById('shirt-colors');
 const colorSelect=document.getElementById('color');
 const designSelect=document.getElementById('design');
@@ -46,7 +46,7 @@ designSelect.addEventListener('change', () => {
 });
 
 
-//Update Costs
+//Dynamically update registration cost from activities selection------------------------------------------
 let totalCost;
 const registerFieldSet = document.getElementById('activities');
 const courses=registerFieldSet.querySelectorAll("[type='checkbox']");
@@ -75,7 +75,7 @@ function updateCost(){
     }
 }
 
-//filtering payment method
+//filtering payment method----------------------------------------------------------------------------
 //hides payment method details for methods NOT selected
 const paymentSelect=document.getElementById('payment');
 const paymentMethods=document.querySelectorAll("[name='payment-type']");
@@ -86,15 +86,16 @@ paymentSelect.addEventListener('change', (e) => {
         }else{
             paymentMethods[i].style.display="none";
         }
-    }
+    }   
 });
 
-
+//ACTIVITIES LISTENERS ---------------------------------------------------------------
 const activities=document.querySelectorAll('[type="checkbox"]');
-//Program acticvities listneners to include;
-//change applies and removes focus styling with change of element focus
-//add's enter key listener to use the enter key to 'check' focused checkbox
+
+
+
 for(let i=0; i<activities.length; i++){
+    //add's enter key listener to use the enter key to 'check' focused checkbox
     activities[i].addEventListener('keypress', (e)=>{
         if(e.key=='Enter')
         {
@@ -106,13 +107,16 @@ for(let i=0; i<activities.length; i++){
             }
         }
     });
+    //adds focus styling to 'box' when checkbos is in focus
     activities[i].addEventListener('focus', (e) =>{
         event.target.parentElement.className="focus";
     });
+    //removes focus styling to 'box' when focus is removed
     activities[i].addEventListener('blur', (e) =>{
         event.target.parentElement.className="";
     });
-
+    //disables boxs where an activitiy time conflict exists.
+    //enables boxs upon de-selection of the checkbox which triggered the conflict styling.
     activities[i].addEventListener('change', (e)=>{
         const check=event.target;
         if(check==activities[0]){
@@ -123,7 +127,7 @@ for(let i=0; i<activities.length; i++){
     });
 }
 
-//Converts data-day-and-time attribute to an Array of "day", "start time" and "end time" in 24 hour time.s
+//Converts data-day-and-time attribute to an Array of "day", "start time" and "end time" in 24 hour time.
 function extractTime(activity){
     let time=activity.getAttribute('data-day-and-time');
 
@@ -137,6 +141,9 @@ function extractTime(activity){
             }
         }else if(time[j].includes("am")){
             time[j]=parseInt(time[j].replace("am", ""));
+            if(time[j]==12){
+                time[j]=0
+            }
         }
 
     }
@@ -144,15 +151,16 @@ function extractTime(activity){
 }
 
 
-//compares times and applies or removes disabled attribute depending on conflict
+//compares converted data-day-and-time array.
+//applies or removes disabled attribute where time/day conflicts are found
 function filterActivities(check){
     const selectedTime=extractTime(check);
     if(check.checked){
         for(let j=1; j<activities.length; j++){
             const testTime=extractTime(activities[j]);
             if(check!=activities[j] && selectedTime[0]==testTime[0] && ((selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]) || (selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]))){
-                activities[j].parentElement.className="disabled";//add disabled class to parent
-                activities[j].setAttribute('disabled', "");//ad attribute disabled
+                activities[j].parentElement.className="disabled";
+                activities[j].setAttribute('disabled', "");
             }
         }
     }else if(!check.checked){
@@ -166,10 +174,9 @@ function filterActivities(check){
     }
 }
 
+//Function disables or enables all checkboxes (activities) except the first activity (Main Conference)
+//when Main Conference (activity[0]) is toggled
 function disableAllActivities(check){
-  
-    
-
     for(let j=1; j<activities.length; j++){
         if(!check.checked){
             activities[j].parentElement.className="disabled";
@@ -182,6 +189,8 @@ function disableAllActivities(check){
     if(check.checked){
         for(let i=1; i<activities.length; i++){
             if(activities[i].checked){
+                //re applies previous conflict styling prior to main conference being 'de-selected'
+                //user cannot register for conflicting activites
                 filterActivities(activities[i]);
             }
         }
@@ -191,19 +200,16 @@ function disableAllActivities(check){
 
 
 
-//Form Validation
+//SUBMIT Form Validation------------------------------------------------------------------------------------
 const submitButton = document.querySelector("[type='submit']");
 const userEmail = document.getElementById('email');
+const payment = document.getElementById('payment');
 const cardNumber = document.getElementById('cc-num');
 const zipCode = document.getElementById('user-zip');
 const cvv = document.getElementById('user-cvv');
 const cardPayment = document.getElementById('credit-card');
 
-// const basicInfo=document.getElementById('basic-info');
-// const activities=document.getElementById('activities');
-// const paymentInfo=document.getElementById('payment-info');
-
-//Submit validation and error handling
+//validation and error handling
 const form=document.getElementById("registration");
 form.addEventListener('submit', (e) => {
     const requiredFields=document.querySelectorAll("[required]");
@@ -212,34 +218,40 @@ form.addEventListener('submit', (e) => {
         const testName=field.getAttribute('testName');
         const validator=validators[testName];
         const valid=validator(field.value);
-        //validation and event listeners for text fields
-        if(testName!="checkBox" && testName!="select"){
+
+        //text field validation
+        if((i >= 0 && i <= 1) || (payment.value == "credit-card" && field.parentElement.parentElement.parentElement.className=="credit-card-box")){
             if(!valid){
                 event.preventDefault();
+                //add error styling/not-valid
                 notValidError(valid, field.parentElement);
-                error(valid, field)
+                error(valid, field);
+                //display hints
+                hintDisplay(valid, field.nextElementSibling, testName, field.value);
+                //dynamically update hints as well as error styling
                 field.addEventListener("keyup", createTextListener(notValidError, validator, field.parentElement));
                 field.addEventListener("keyup", createTextListener(error, validator, field)); 
+                field.addEventListener('keyup', createHintListener(hintDisplay));
             }
             else{
                 notValidError(valid, field.parentElement);
             }
-        //validation for checkbox (exp date, exp month only)
-        }else if(testName=="select"){
+        //select field validation
+        }else if(payment.value == "credit-card" && testName=="select"){
             if(!valid){
                 event.preventDefault();
-                error(valid, field)
+                error(valid, field);
                 field.addEventListener("change", createTextListener(error, validator, field)); 
             }
             else{
                 notValidError(valid, field);
             }
-        //validation for checkbox
-        }else{
-            const checkBoxFieldSet=document.getElementById('activities')
+        //checkbox field validation
+        }else if(testName=="checkBox"){
+            const checkBoxFieldSet=document.getElementById('activities');
             if(!valid){
                 event.preventDefault();
-                checkBoxFieldSet.className="activities not-valid"
+                checkBoxFieldSet.className="activities not-valid";
                 checkBoxFieldSet.lastElementChild.style.display = "block";
             }
             checkBoxFieldSet.addEventListener('change', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
@@ -247,7 +259,7 @@ form.addEventListener('submit', (e) => {
         }
     }
 
-    //focuses page on submit to first invlaid field
+    //focuses page to first invlaid field
     for (let i=0; i<requiredFields.length; i++){
         const className=requiredFields[i].className;
 
@@ -259,6 +271,7 @@ form.addEventListener('submit', (e) => {
 });
 
 
+//Listener functions and error/not-valid styling functions
 function createTextListener(testFunc, validator, element){
     return e => {
       const text = e.target.value;
@@ -299,7 +312,7 @@ function errorCheckbox(valid, element){
 }
 
 
-//Field Validation functions
+//individual field Validation functions for 'required' fields
 const validators = {
     cardNumber: function (number){
         return /^[\d]{13,16}$/.test(number);
@@ -316,7 +329,7 @@ const validators = {
     emailHint: function (email){
 
     },
-    //this requires additional validation - no leading or trailing spaces - or perhaps reformat it.
+    //this would benefit from additional validation - no leading or trailing spaces - or perhaps reformat it.
     name: function (text){
         if (text)
             return true;
@@ -339,12 +352,6 @@ const validators = {
     }
 };
 
-//dynamic hint alerts for credit card details
-if(paymentSelect.value=='credit-card'){
-    cardPayment.addEventListener('keyup', createHintListener(hintDisplay));
-};
-
-
 function createHintListener(display) {
     return (e) => {
         const field = event.target
@@ -360,25 +367,55 @@ function createErrorListener(){
     return (e) => {
         const field = event.target
         const fieldName=field.getAttribute('testName');
-        
         const fieldValue=event.target.value;
         const valid = validators[fieldName](fieldValue);
         notValidError(valid, field, fieldName);
     }
 };
 
+
 function hintDisplay(valid, element, fieldName, fieldValue){
-    // show element when valid and hide when !valid
-    // if the element argument is the email field, hintDisplay dynamically
-    // changes the 'hint' to suit the issue with its value upon validation
+    // show element when !valid and hide when valid
+    // hintDisplay function also dynamically sets the hint content
     if (valid){
         element.style.display = "none";
     }else{
         element.style.display = "block";
-        if(fieldName=="email" && !fieldValue){
-            element.innerHTML="You must enter a valid email address"
-        }else if(fieldName=="email" && fieldValue){
-            element.innerHTML="Email address must be formatted correctly"
+    }
+
+    //Set hints for differing validation cases
+    if(fieldName=="zipCode"){
+        if(!fieldValue){
+            element.innerHTML="You must enter a Zip code";
+        }else if(/[\D]+/.test(fieldValue)){
+            element.innerHTML="Zip code must be digits only";
+        }else{      
+            element.innerHTML="Zip code must be 5 digits";
+        }
+    }
+    if(fieldName=="cvv"){
+        if(!fieldValue){
+            element.innerHTML="You must enter a cvv number";
+        }else if(/[\D]+/.test(fieldValue)){
+            element.innerHTML="cvv must be digits only";
+        }else{      
+            element.innerHTML="cvv must be 3 digits";
+        }
+    }
+    if(fieldName=="cardNumber"){
+        if(!fieldValue){
+            element.innerHTML="You must enter a card number";
+        }else if(/[\D]+/.test(fieldValue)){
+            element.innerHTML="Card number must be digits only";
+        }else{      
+            element.innerHTML="Card number must be 13-16 digits";
+        }
+    }
+    if(fieldName=="email"){
+        if(!fieldValue){
+            element.innerHTML="You must enter a valid email address";
+        }else{
+            element.innerHTML="Email address must be formatted correctly";
         }
     }
 }
