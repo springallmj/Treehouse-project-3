@@ -45,28 +45,16 @@ designSelect.addEventListener('change', () => {
     }
 });
 
-
-//Dynamically update registration cost from activities selection------------------------------------------
-let totalCost;
-const registerFieldSet = document.getElementById('activities');
-const courses=registerFieldSet.querySelectorAll("[type='checkbox']");
-registerFieldSet.addEventListener('change', () => {
-    if(event.target.type='checkbox'){
-        document.getElementById('activities-cost').innerHTML=updateCost();
-    }
-});
-
-
-//updateCost() takes no arguments but dynamically calculates the 
-//totalCost global variable based off checked items
-//Function also dynamically creates the total cost HTML and inserts 
-//in to the DOM
+//updateCost() takes no arguments and calculates the totalCost off checked items
+//Function also dynamically creates the total cost HTML and 
+//@returun a string containing calculated cost
 function updateCost(){
+    const registerFieldSet = document.getElementById('activities');
+    const courses=registerFieldSet.querySelectorAll("[type='checkbox']");
     if (!courses[0].checked){
         return "Total: $0";
     }else{
-        
-        totalCost=0;
+        let totalCost=0;
         for(let i=0; i<courses.length; i++){
             if(courses[i].checked)
             totalCost+=parseInt(courses[i].getAttribute('data-cost'))
@@ -91,20 +79,24 @@ paymentSelect.addEventListener('change', (e) => {
 
 //ACTIVITIES LISTENERS ---------------------------------------------------------------
 const activities=document.querySelectorAll('[type="checkbox"]');
-
-
-
 for(let i=0; i<activities.length; i++){
-    //add's enter key listener to use the enter key to 'check' focused checkbox
+    //enter key to 'check' focused checkbox
+    //filter activities for conflicts
     activities[i].addEventListener('keypress', (e)=>{
-        if(e.key=='Enter')
-        {
+        if(e.key=='Enter'){
             event.preventDefault();
             if(event.target.checked==true){
                 event.target.checked=false
             }else{
-                event.target.checked=true
+                event.target.checked=true  
             }
+            //filter functions for time conflict added as this update to checkbox does not trigger the change event.
+            if(event.target==activities[0]){
+                disableAllActivities(event.target)
+            }else{
+                filterActivities(event.target);    
+            }
+            document.getElementById('activities-cost').innerHTML=updateCost();
         }
     });
     //adds focus styling to 'box' when checkbos is in focus
@@ -118,11 +110,11 @@ for(let i=0; i<activities.length; i++){
     //disables boxs where an activitiy time conflict exists.
     //enables boxs upon de-selection of the checkbox which triggered the conflict styling.
     activities[i].addEventListener('change', (e)=>{
-        const check=event.target;
-        if(check==activities[0]){
-            disableAllActivities(check)
+        document.getElementById('activities-cost').innerHTML=updateCost();
+        if(event.target==activities[0]){
+            disableAllActivities(event.target)
         }else{
-            filterActivities(check);
+            filterActivities(event.target);    
         }
     });
 }
@@ -145,33 +137,42 @@ function extractTime(activity){
                 time[j]=0
             }
         }
-
     }
     return time;
 }
 
 
 //compares converted data-day-and-time array.
-//applies or removes disabled attribute where time/day conflicts are found
+//applies or removes disabled attribute to checkbox where time/day conflicts are found
 function filterActivities(check){
     const selectedTime=extractTime(check);
-    if(check.checked){
-        for(let j=1; j<activities.length; j++){
-            const testTime=extractTime(activities[j]);
-            if(check!=activities[j] && selectedTime[0]==testTime[0] && ((selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]) || (selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]))){
-                activities[j].parentElement.className="disabled";
-                activities[j].setAttribute('disabled', "");
-            }
-        }
-    }else if(!check.checked){
-        for(let j=1; j<activities.length; j++){
-            const testTime=extractTime(activities[j]);
-            if(check!=activities[j] && selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2] || selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
-                activities[j].parentElement.className="";
-                activities[j].removeAttribute('disabled');
+    for(let j=1; j<activities.length; j++){
+        if(check!=activities[j]){
+            if(timeConflict(selectedTime, extractTime(activities[j]))){
+                if(check.checked){
+                    activities[j].parentElement.className="disabled";
+                    activities[j].setAttribute('disabled', "");
+                }else{
+                    activities[j].parentElement.className="";
+                    activities[j].removeAttribute('disabled');
+                }
             }
         }
     }
+}
+
+//compares 2 time periods and returns true if they are conflicting (overlapping)
+//@param
+//selectedTime, testTime == DAY - START HOUR (24hours) - FINISH HOUR (24hours)
+function timeConflict(selectedTime, testTime){
+    if(selectedTime[0]==testTime[0]){
+        if(selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]){
+            return true;
+        }else if(selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
+            return true;
+        }
+    }
+    return false;
 }
 
 //Function disables or enables all checkboxes (activities) except the first activity (Main Conference)
@@ -197,19 +198,8 @@ function disableAllActivities(check){
     }
 }
 
-
-
-
 //SUBMIT Form Validation------------------------------------------------------------------------------------
-const submitButton = document.querySelector("[type='submit']");
-const userEmail = document.getElementById('email');
-const payment = document.getElementById('payment');
-const cardNumber = document.getElementById('cc-num');
-const zipCode = document.getElementById('user-zip');
-const cvv = document.getElementById('user-cvv');
-const cardPayment = document.getElementById('credit-card');
-
-//validation and error handling
+//validation and error handling is broken in to 3 types; text fields, checkbox fileds and select fields.
 const form=document.getElementById("registration");
 form.addEventListener('submit', (e) => {
     const requiredFields=document.querySelectorAll("[required]");
@@ -218,9 +208,9 @@ form.addEventListener('submit', (e) => {
         const testName=field.getAttribute('testName');
         const validator=validators[testName];
         const valid=validator(field.value);
-
         //text field validation
-        if((i >= 0 && i <= 1) || (payment.value == "credit-card" && field.parentElement.parentElement.parentElement.className=="credit-card-box")){
+        //includes credit card number fields ONLY if credit card is selected as payment method
+        if((i >= 0 && i <= 1) || (paymentSelect.value == "credit-card" && field.parentElement.parentElement.parentElement.className=="credit-card-box")){
             if(!valid){
                 event.preventDefault();
                 //add error styling/not-valid
@@ -237,7 +227,7 @@ form.addEventListener('submit', (e) => {
                 notValidError(valid, field.parentElement);
             }
         //select field validation
-        }else if(payment.value == "credit-card" && testName=="select"){
+        }else if(paymentSelect.value == "credit-card" && testName=="select"){
             if(!valid){
                 event.preventDefault();
                 error(valid, field);
@@ -259,16 +249,36 @@ form.addEventListener('submit', (e) => {
         }
     }
 
-    //focuses page to first invlaid field
+    //focuses page to first invlaid field on submit event if fields are invalid.
     for (let i=0; i<requiredFields.length; i++){
         const className=requiredFields[i].className;
-
         if(/not-valid/.test(className) || /error$/.test(className)){
+            if(i==2){
+                document.querySelector('[type="checkbox"]').focus();
+                break;
+            }else{
                 requiredFields[i].focus();
                 break;
+            }
         }
     }
 });
+
+
+//Real Time Error Messaging
+//adds listeners to validate card details (card-number, card-exp-date and cvv) in real time IRRESPECTIVE of submit event
+const paymentFieldSet=document.getElementById("payment-info");
+const paymentTextFields=paymentFieldSet.querySelectorAll('[type="text"]');
+for(let i=0; i<paymentTextFields.length; i++){
+    paymentTextFields[i].addEventListener('focus', (e) =>{
+        const field=event.target;
+        const testName=field.getAttribute('testName');
+        const validator=validators[testName];
+        const valid=validator(field.value);
+        event.target.addEventListener("keyup", createTextListener(notValidError, validator, field.parentElement));
+        event.target.addEventListener("keyup", createHintListener(hintDisplay));
+    });
+};
 
 
 //Listener functions and error/not-valid styling functions
