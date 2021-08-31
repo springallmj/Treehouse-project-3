@@ -47,20 +47,17 @@ designSelect.addEventListener('change', () => {
 
 //updateCost() takes no arguments and calculates the totalCost off checked items
 //Function also dynamically creates the total cost HTML and 
-//@returun a string containing calculated cost
+//@return a string containing calculated cost
 function updateCost(){
     const registerFieldSet = document.getElementById('activities');
     const courses=registerFieldSet.querySelectorAll("[type='checkbox']");
-    if (!courses[0].checked){
-        return "Total: $0";
-    }else{
-        let totalCost=0;
-        for(let i=0; i<courses.length; i++){
-            if(courses[i].checked)
-            totalCost+=parseInt(courses[i].getAttribute('data-cost'))
-        }
-        return `Total: $${totalCost.toString() }`;
+
+    let totalCost=0;
+    for(let i=0; i<courses.length; i++){
+        if(courses[i].checked)
+        totalCost+=parseInt(courses[i].getAttribute('data-cost'))
     }
+    return `Total: $${totalCost.toString() }`;
 }
 
 //filtering payment method----------------------------------------------------------------------------
@@ -90,12 +87,7 @@ for(let i=0; i<activities.length; i++){
             }else{
                 event.target.checked=true  
             }
-            //filter functions for time conflict added as this update to checkbox does not trigger the change event.
-            if(event.target==activities[0]){
-                disableAllActivities(event.target)
-            }else{
-                filterActivities(event.target);    
-            }
+            filterActivities(event.target);    
             document.getElementById('activities-cost').innerHTML=updateCost();
         }
     });
@@ -107,15 +99,10 @@ for(let i=0; i<activities.length; i++){
     activities[i].addEventListener('blur', (e) =>{
         event.target.parentElement.className="";
     });
-    //disables boxs where an activitiy time conflict exists.
-    //enables boxs upon de-selection of the checkbox which triggered the conflict styling.
+    //enables/disables boxs where an activitiy time conflict changes.
     activities[i].addEventListener('change', (e)=>{
         document.getElementById('activities-cost').innerHTML=updateCost();
-        if(event.target==activities[0]){
-            disableAllActivities(event.target)
-        }else{
-            filterActivities(event.target);    
-        }
+        filterActivities(event.target);    
     });
 }
 
@@ -166,36 +153,15 @@ function filterActivities(check){
 //selectedTime, testTime == DAY - START HOUR (24hours) - FINISH HOUR (24hours)
 function timeConflict(selectedTime, testTime){
     if(selectedTime[0]==testTime[0]){
+        //if start time 1 is within start and end time 2
         if(selectedTime[1] >= testTime[1] && selectedTime[1] < testTime[2]){
             return true;
+        //else if end time 1 is within start and end time 2
         }else if(selectedTime[2] > testTime[1] && selectedTime[2] <= testTime[2]){
             return true;
         }
     }
     return false;
-}
-
-//Function disables or enables all checkboxes (activities) except the first activity (Main Conference)
-//when Main Conference (activity[0]) is toggled
-function disableAllActivities(check){
-    for(let j=1; j<activities.length; j++){
-        if(!check.checked){
-            activities[j].parentElement.className="disabled";
-            activities[j].setAttribute('disabled', "");
-        }else{
-            activities[j].parentElement.className="";
-            activities[j].removeAttribute('disabled');
-        }
-    }
-    if(check.checked){
-        for(let i=1; i<activities.length; i++){
-            if(activities[i].checked){
-                //re applies previous conflict styling prior to main conference being 'de-selected'
-                //user cannot register for conflicting activites
-                filterActivities(activities[i]);
-            }
-        }
-    }
 }
 
 //SUBMIT Form Validation------------------------------------------------------------------------------------
@@ -226,24 +192,15 @@ form.addEventListener('submit', (e) => {
             else{
                 notValidError(valid, field.parentElement);
             }
-        //select field validation
-        }else if(paymentSelect.value == "credit-card" && testName=="select"){
-            if(!valid){
-                event.preventDefault();
-                error(valid, field);
-                field.addEventListener("change", createTextListener(error, validator, field)); 
-            }
-            else{
-                notValidError(valid, field);
-            }
         //checkbox field validation
         }else if(testName=="checkBox"){
             const checkBoxFieldSet=document.getElementById('activities');
+            //add valid/not-valid styling
+            errorCheckbox(valid, checkBoxFieldSet);
             if(!valid){
                 event.preventDefault();
-                checkBoxFieldSet.className="activities not-valid";
-                checkBoxFieldSet.lastElementChild.style.display = "block";
             }
+            //add listeners to update valid/notvalid styling
             checkBoxFieldSet.addEventListener('change', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
             checkBoxFieldSet.addEventListener('keypress', createChangeListener(errorCheckbox, validator, checkBoxFieldSet));
         }
@@ -313,7 +270,7 @@ function error(valid, element){
 
 function errorCheckbox(valid, element){
     if(valid){
-        element.className="activities";
+        element.className="activities valid";
         element.lastElementChild.style.display = "none";
     }else{
         element.className="activities not-valid";
@@ -353,12 +310,13 @@ const validators = {
             return false;
     },
     checkBox: function(){
-        if(!document.querySelector('[name="all"]').checked){
-            return false;
+        const courses=document.querySelectorAll("[type='checkbox']");
+        for (let i=0; i<courses.length; i++){
+            if(courses[i].checked){
+                return true;
+            }
         }
-        else{
-            return true;
-        }
+        return false;
     }
 };
 

@@ -1,5 +1,5 @@
 This is my TREEHOUSE PROJECT 3; INTERACTIVE FORM.
-Completed for Submission 26/08/2021
+Completed for Submission 01/09/2021
 
 Project authored by Matthew Springall.
 
@@ -37,19 +37,9 @@ Listeners are therefore doubled up as they are applied again at validation. This
 --------------------
 Additional features;
 
-ACTIVITES;
-All activities are disabled until Main Confrence is selected. If Main conference is deselected, activites become disabled again and total cost reverts to 0.
-On third toggle of Main Conference (selecting for the second time), if any additional activities where previously selected at time of Main Conference deselect, the conflict styling remains applied (you cannot register for conflicting events in this scenario).
-
-In Summary; Submit cannot occur without one activity being selected however it is not possible to select an activity other than main conference if no other activity is selected. It is therefore also not possible to submit without main conference being selected.
-
-ENTER KEY-ACTIVITIES;
+ACTIVITIES - ENTER KEY INTERACTION;
 Enter key will check/un-check a checkbox when in focus.
 Registration form can be completed with keyboard only - benefiting screen reader/visually impaired.
-
-CARD VALIDATION;
-Exp Month and CVV prevent submit if no selection is made and error styling is applied. 
-Not 'briefed' as required, can be removed from code but depending on the payment client, these fields are often required to process.
 
 SUBMIT-NOT-VALID Re-Focus
 If a submission is prevented due to validation, the page focuses to the top most invalid field.
